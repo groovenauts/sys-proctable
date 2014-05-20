@@ -71,7 +71,13 @@ module Sys
       'gid',         # Real group ID
       'egid',        # Effective group ID
       'pctcpu',     # Percent of CPU usage (custom field)
-      'pctmem'      # Percent of Memory usage (custom field)
+      'pctmem',      # Percent of Memory usage (custom field)
+      'rchar',       # The number of bytes which this task has caused, or shall cause to be read by the process using functions like read().
+      'wchar',       # The number of bytes which this task has caused, or shall cause to be written by the process using functions like write().
+      'syscr',       # Counters for number of read I/O operation.
+      'syscw',       # Counters for number of write I/O operation.
+      'read_bytes',  # Attempt to count the number of bytes which this process really did cause to be fetched from the storage layer.
+      'write_bytes'  # Attempt to count the number of bytes which this process caused to be sent to the storage layer.
     ]
 
     public
@@ -230,6 +236,24 @@ module Sys
         # Manually calculate CPU and memory usage
         struct.pctcpu = get_pctcpu(struct.utime, struct.starttime)
         struct.pctmem = get_pctmem(struct.rss)
+
+        # Get /proc/<pid>/io information (rchar, wchar, syscr, syscw, read_bytes, write_bytes)
+        IO.foreach("/proc/#{file}/io") do |line|
+          case line
+            when /rchar:\s*?(\d+)/
+              struct.rchar = $1
+            when /wchar:\s*?(\d+)/
+              struct.wchar  = $1.to_i
+            when /syscr:\s*?(\d+)/
+              struct.syscr  = $1.to_i
+            when /syscw:\s*?(\d+)/
+              struct.syscw  = $1.to_i
+            when /read_bytes:\s*?(\d+)/
+              struct.read_bytes  = $1.to_i
+            when /write_bytes:\s*?(\d+)/
+              struct.write_bytes  = $1.to_i
+          end
+        end
 
         struct.freeze # This is read-only data
 
