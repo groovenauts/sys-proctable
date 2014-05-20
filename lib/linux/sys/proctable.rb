@@ -77,7 +77,18 @@ module Sys
       'syscr',       # Counters for number of read I/O operation.
       'syscw',       # Counters for number of write I/O operation.
       'read_bytes',  # Attempt to count the number of bytes which this process really did cause to be fetched from the storage layer.
-      'write_bytes'  # Attempt to count the number of bytes which this process caused to be sent to the storage layer.
+      'write_bytes', # Attempt to count the number of bytes which this process caused to be sent to the storage layer.
+      'vm_peak',     # peak virtual memory usage
+      'vm_size',     # Peak virtual memory size
+      'vm_lck',      # locked(not swap out) memory size
+      'vm_hwm',      # Peak resident set size ("high water mark")
+      'vm_rss',      # Resident set size
+      'vm_data',     # size of "data" segment
+      'vm_stk',      # stack size
+      'vm_exe',      # execution file size
+      'vm_lib',      # shared library code size
+      'vm_pte',      # page table entries size
+      'vm_swap'      # size of swap usage
     ]
 
     public
@@ -227,6 +238,28 @@ module Sys
             when /Gid:\s*?(\d+)\s*?(\d+)/
               struct.gid  = $1.to_i
               struct.egid = $2.to_i
+            when /VmPeak:\s*?(\d+) kB/
+              struct.vm_peak = $1.to_i
+            when /VmSize:\s*?(\d+) kB/
+              struct.vm_size = $1.to_i
+            when /VmLck:\s*?(\d+) kB/
+              struct.vm_lck = $1.to_i
+            when /VmHWM:\s*?(\d+) kB/
+              struct.vm_hwm = $1.to_i
+            when /VmRSS:\s*?(\d+) kB/
+              struct.vm_rss = $1.to_i
+            when /VmData:\s*?(\d+) kB/
+              struct.vm_data = $1.to_i
+            when /VmStk:\s*?(\d+) kB/
+              struct.vm_stk = $1.to_i
+            when /VmExe:\s*?(\d+) kB/
+              struct.vm_exe = $1.to_i
+            when /VmLib:\s*?(\d+) kB/
+              struct.vm_lib = $1.to_i
+            when /VmPTE:\s*?(\d+) kB/
+              struct.vm_pte = $1.to_i
+            when /VmSwap:\s*?(\d+) kB/
+              struct.vm_swap = $1.to_i
           end
         end
 
@@ -241,7 +274,7 @@ module Sys
         IO.foreach("/proc/#{file}/io") do |line|
           case line
             when /rchar:\s*?(\d+)/
-              struct.rchar = $1
+              struct.rchar = $1.to_i
             when /wchar:\s*?(\d+)/
               struct.wchar  = $1.to_i
             when /syscr:\s*?(\d+)/
